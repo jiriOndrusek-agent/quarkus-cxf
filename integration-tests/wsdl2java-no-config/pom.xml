@@ -41,6 +41,11 @@
                             <goal>generate-code</goal>
                         </goals>
                     </execution>
+                    <execution>
+                        <!-- Disable generate-code-tests added by the fips profile in the parent: Wsdl2JavaNoConfigTest expects no test code generation -->
+                        <id>fips-generate-code-tests</id>
+                        <phase>none</phase>
+                    </execution>
                 </executions>
             </plugin>
         </plugins>

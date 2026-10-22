@@ -45,3 +45,10 @@ A build with integration tests in both the JVM mode and the native mode:
 ----
 $ mvn clean install -Pnative
 ----
+
+A build with integration tests running CXF and WSS4J in FIPS mode, meant for FIPS enabled systems (do not use `-Dfips.enabled=true`, it adds `bc-fips` to the class path):
+
+[source,shell]
+----
+$ mvn clean install -Pfips
+----
