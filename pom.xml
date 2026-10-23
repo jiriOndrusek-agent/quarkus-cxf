@@ -509,27 +509,45 @@
                     <name>fips</name>
                 </property>
             </activation>
+            <!-- WSS4J reads only the system property fips.enabled. It is set only where the app runs: -->
+            <!-- -Dfips.enabled for Maven would activate the fips profile of cxf-parent, which adds bc-fips. -->
+            <properties>
+                <!-- Native: WSS4J FIPSUtils is initialized at image build time -->
+                <quarkus.native.additional-build-args-append>-Dfips.enabled=true</quarkus.native.additional-build-args-append>
+            </properties>
             <build>
                 <pluginManagement>
                     <plugins>
-                        <!-- Set the Quarkus property fips.enabled through an env var. -->
-                        <!-- -Dfips.enabled would activate the fips profile of cxf-parent, which adds bc-fips. -->
+                        <plugin>
+                            <groupId>io.quarkus</groupId>
+                            <artifactId>quarkus-maven-plugin</artifactId>
+                            <executions>
+                                <!-- @QuarkusTest then uses the app model resolved by Maven instead of resolving it with fips.enabled -->
+                                <execution>
+                                    <id>fips-generate-code-tests</id>
+                                    <goals>
+                                        <goal>generate-code-tests</goal>
+                                    </goals>
+                                </execution>
+                            </executions>
+                        </plugin>
                         <plugin>
                             <groupId>org.apache.maven.plugins</groupId>
                             <artifactId>maven-surefire-plugin</artifactId>
                             <configuration>
-                                <environmentVariables>
-                                    <FIPS_ENABLED>true</FIPS_ENABLED>
-                                </environmentVariables>
+                                <systemPropertyVariables>
+                                    <fips.enabled>true</fips.enabled>
+                                </systemPropertyVariables>
                             </configuration>
                         </plugin>
                         <plugin>
                             <groupId>org.apache.maven.plugins</groupId>
                             <artifactId>maven-failsafe-plugin</artifactId>
                             <configuration>
-                                <environmentVariables>
-                                    <FIPS_ENABLED>true</FIPS_ENABLED>
-                                </environmentVariables>
+                                <systemPropertyVariables>
+                                    <!-- The app launched by @QuarkusIntegrationTest -->
+                                    <quarkus.test.arg-line>-Dfips.enabled=true</quarkus.test.arg-line>
+                                </systemPropertyVariables>
                             </configuration>
                         </plugin>
                     </plugins>
