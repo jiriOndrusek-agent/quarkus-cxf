@@ -105,4 +105,44 @@
         </plugins>
     </build>
 
+    <profiles>
+        <profile>
+            <!-- Run the tests with CXF and WSS4J in FIPS mode: mvn verify -Pfips
+                 Do not use -Dfips.enabled=true: it activates the fips profile of org.apache.cxf:cxf-parent,
+                 which adds org.bouncycastle:bc-fips to all CXF dependencies.
+                 Hence fips.enabled is set only after Quarkus has resolved the application model -->
+            <id>fips</id>
+            <properties>
+                <!-- CXF and WSS4J read fips.enabled in static initializers, which run in the native image builder -->
+                <quarkus.native.additional-build-args-append>-J-Dfips.enabled=true</quarkus.native.additional-build-args-append>
+            </properties>
+            <build>
+                <pluginManagement>
+                    <plugins>
+                        <plugin>
+                            <groupId>org.apache.maven.plugins</groupId>
+                            <artifactId>maven-surefire-plugin</artifactId>
+                            <configuration>
+                                <systemPropertyVariables>
+                                    <!-- @QuarkusTest: FipsTestExecutionListener from quarkus-cxf-test-util-internal sets fips.enabled after test discovery -->
+                                    <qcxf.fips.enabled>true</qcxf.fips.enabled>
+                                </systemPropertyVariables>
+                            </configuration>
+                        </plugin>
+                        <plugin>
+                            <groupId>org.apache.maven.plugins</groupId>
+                            <artifactId>maven-failsafe-plugin</artifactId>
+                            <configuration>
+                                <systemPropertyVariables>
+                                    <!-- The application launched by @QuarkusIntegrationTest -->
+                                    <quarkus.test.arg-line>-Dfips.enabled=true</quarkus.test.arg-line>
+                                </systemPropertyVariables>
+                            </configuration>
+                        </plugin>
+                    </plugins>
+                </pluginManagement>
+            </build>
+        </profile>
+    </profiles>
+
 </project>
